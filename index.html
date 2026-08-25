@@ -50,6 +50,14 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-fast {
+            animation: spin 0.7s linear infinite;
+        }
     </style>
 </head>
 
@@ -83,8 +91,14 @@
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                 </div>
-                <input type="text" id="searchInput" placeholder="Buscar ícone no catálogo..."
-                    class="bg-slate-800 border border-slate-700 text-white rounded-lg block w-full pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                <input type="text" id="searchInput" placeholder="Buscar ícone (mínimo 3 letras)..."
+                    class="bg-slate-800 border border-slate-700 text-white rounded-lg block w-full pl-9 pr-8 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                <button id="clearSearchBtn" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-white hidden">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
 
             <div class="flex items-center gap-3">
@@ -108,7 +122,7 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
                 </span>
-                <span class="text-xs uppercase font-bold tracking-wider text-blue-200">White-Label em Tempo Real:</span>
+                <span class="text-xs uppercase font-bold tracking-wider text-blue-200">Customização White-Label:</span>
             </div>
 
             <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
@@ -125,11 +139,11 @@
                 </div>
 
                 <button id="applyPrefixBtn"
-                    class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-md flex items-center gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg id="applyPrefixBtnIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    Aplicar Prefixo
+                    <span id="applyPrefixBtnText">Aplicar Prefixo</span>
                 </button>
             </div>
         </div>
@@ -155,13 +169,22 @@
         </nav>
 
         <!-- View 1: Catalog -->
-        <div id="view-library">
-            <div class="flex justify-between items-center mb-6">
+        <div id="view-library" class="relative min-h-[300px]">
+            <!-- Loading Overlay -->
+            <div id="gridLoadingOverlay" class="absolute inset-0 bg-slate-50/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-2xl hidden transition-opacity">
+                <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin-fast mb-3"></div>
+                <span class="text-sm font-semibold text-slate-700">Atualizando todos os ícones...</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900">Ícones Disponíveis</h2>
                     <p class="text-xs text-slate-500 mt-0.5">Clique em qualquer ícone para customizar, copiar código ou enviar direto ao Playground</p>
                 </div>
-                <span id="iconCounter" class="text-xs text-white font-bold bg-blue-600 px-3 py-1.5 rounded-lg shadow-sm">0 ícones</span>
+                <div class="flex items-center gap-2">
+                    <span id="searchHint" class="text-xs text-amber-600 font-medium hidden">Digite pelo menos 3 letras...</span>
+                    <span id="iconCounter" class="text-xs text-white font-bold bg-blue-600 px-3 py-1.5 rounded-lg shadow-sm">0 ícones</span>
+                </div>
             </div>
 
             <div id="iconGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
@@ -207,7 +230,7 @@
                     </div>
                     <p class="text-xs text-slate-600 mb-4">No seu <code class="bg-slate-100 px-1 py-0.5 rounded text-red-600">src/main.ts</code> ou <code class="bg-slate-100 px-1 py-0.5 rounded text-red-600">app.config.ts</code>:</p>
                     
-                    <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-xs font-mono overflow-x-auto mb-4"><code>import { configureIcons } from '@erikbernard/white-label-icons';
+                    <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-xs font-mono overflow-x-auto mb-4"><code>import { configureIcons } from '@erikbernardo/white-label-icons';
 
 configureIcons({
   prefix: '<span class="current-prefix-label">wl</span>',
@@ -231,7 +254,7 @@ configureIcons({
                     </div>
                     <p class="text-xs text-slate-600 mb-4">No ponto de entrada (ex: <code class="bg-slate-100 px-1 py-0.5 rounded text-blue-600">index.jsx</code>, <code class="bg-slate-100 px-1 py-0.5 rounded text-blue-600">main.js</code>):</p>
                     
-                    <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-xs font-mono overflow-x-auto mb-4"><code>import { configureIcons } from '@erikbernard/white-label-icons';
+                    <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-xs font-mono overflow-x-auto mb-4"><code>import { configureIcons } from '@erikbernardo/white-label-icons';
 
 configureIcons({
   prefix: '<span class="current-prefix-label">wl</span>',
@@ -510,15 +533,39 @@ configureIcons({
             });
         }
 
-        // Renderiza o grid de ícones no catálogo
+        // Renderiza o grid de ícones no catálogo com alta performance (DocumentFragment)
         function renderGrid(filter = '') {
             const grid = document.getElementById('iconGrid');
             if (!grid) return;
             grid.innerHTML = '';
 
-            keys.forEach(nome => {
-                if (filter && !nome.includes(filter.toLowerCase())) return;
+            const normalizedFilter = filter.trim().toLowerCase();
+            const filteredKeys = normalizedFilter.length >= 3
+                ? keys.filter(nome => nome.toLowerCase().includes(normalizedFilter))
+                : keys;
 
+            const iconCounter = document.getElementById('iconCounter');
+            if (iconCounter) {
+                iconCounter.innerText = `${filteredKeys.length} ícone${filteredKeys.length === 1 ? '' : 's'}`;
+            }
+
+            if (filteredKeys.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-slate-500">
+                        <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <p class="text-sm font-semibold">Nenhum ícone encontrado para "${filter}"</p>
+                        <p class="text-xs text-slate-400 mt-1">Tente buscar por termos em inglês como "user", "car", "cart", "chevron", "heart"...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            filteredKeys.forEach(nome => {
                 const card = document.createElement('div');
                 card.className = "bg-white border border-slate-200 hover:border-blue-500/50 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50/50 transition-all group shadow-sm hover:shadow-md";
                 card.onclick = () => openModal(nome);
@@ -538,51 +585,124 @@ configureIcons({
 
                 card.appendChild(iconWrapper);
                 card.appendChild(label);
-                grid.appendChild(card);
+                fragment.appendChild(card);
             });
+
+            grid.appendChild(fragment);
         }
 
-        // Aplicação dinâmica e em tempo real de prefixo em todo o site
-        function updateGlobalPrefix(showFeedback = true) {
-            const rawPrefix = document.getElementById('globalPrefixInput').value.trim() || 'wl';
+        // Aplicação do prefixo sob demanda (com Loading)
+        function applyPrefixWithLoading() {
+            const btn = document.getElementById('applyPrefixBtn');
+            const btnText = document.getElementById('applyPrefixBtnText');
+            const btnIcon = document.getElementById('applyPrefixBtnIcon');
+            const prefixInput = document.getElementById('globalPrefixInput');
+            const tagInput = document.getElementById('globalTagInput');
+            const overlay = document.getElementById('gridLoadingOverlay');
+
+            const rawPrefix = prefixInput.value.trim() || 'wl';
             const newPrefix = rawPrefix.toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'wl';
             
-            let rawTag = document.getElementById('globalTagInput').value.trim().toLowerCase();
+            let rawTag = tagInput.value.trim().toLowerCase();
             if (!rawTag || !rawTag.includes('-')) {
                 rawTag = `${newPrefix}-icone`;
-                document.getElementById('globalTagInput').value = rawTag;
+                tagInput.value = rawTag;
             }
 
-            currentConfig = configureIcons({
-                prefix: newPrefix,
-                tagName: rawTag
-            });
+            // Ativa o estado de loading
+            btn.disabled = true;
+            prefixInput.disabled = true;
+            tagInput.disabled = true;
+            btnText.innerText = 'Aplicando...';
+            btnIcon.innerHTML = `<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>`;
+            btnIcon.classList.add('animate-spin-fast');
 
-            // Atualiza todos os labels visuais por todo o documento
-            document.querySelectorAll('.current-prefix-label').forEach(el => el.innerText = newPrefix);
-            document.querySelectorAll('.current-tag-label').forEach(el => el.innerText = currentConfig.tagName);
+            if (overlay) overlay.classList.remove('hidden');
 
-            // Re-renderiza catálogo e playground
-            renderGrid(document.getElementById('searchInput').value);
-            renderSandbox();
+            // Processa as modificações em background para permitir renderização do spinner
+            setTimeout(() => {
+                currentConfig = configureIcons({
+                    prefix: newPrefix,
+                    tagName: rawTag
+                });
 
-            if (showFeedback) {
-                showToast(`Prefixo atualizado: "${newPrefix}" | Tag: "<${currentConfig.tagName}>"`);
-            }
+                // Atualiza todos os labels visuais
+                document.querySelectorAll('.current-prefix-label').forEach(el => el.innerText = newPrefix);
+                document.querySelectorAll('.current-tag-label').forEach(el => el.innerText = currentConfig.tagName);
+
+                // Re-renderiza o catálogo com o termo de busca atual e o playground
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                renderGrid(searchTerm.length >= 3 ? searchTerm : '');
+                renderSandbox();
+
+                // Restaura o estado normal do botão
+                btn.disabled = false;
+                prefixInput.disabled = false;
+                tagInput.disabled = false;
+                btnText.innerText = 'Aplicar Prefixo';
+                btnIcon.innerHTML = `<polyline points="20 6 9 17 4 12"></polyline>`;
+                btnIcon.classList.remove('animate-spin-fast');
+
+                if (overlay) overlay.classList.add('hidden');
+
+                showToast(`✔ Prefixo "${newPrefix}" e tag "<${currentConfig.tagName}>" aplicados a todos os ícones!`);
+            }, 60);
         }
 
-        // Eventos da barra superior
+        // Apenas ajusta o valor do campo tag enquanto digita (sem disparar re-render do projeto)
         document.getElementById('globalPrefixInput').addEventListener('input', (e) => {
             const p = (e.target.value.trim() || 'wl').toLowerCase().replace(/[^a-z0-9_-]/g, '');
             document.getElementById('globalTagInput').value = `${p}-icone`;
-            updateGlobalPrefix(false);
         });
 
-        document.getElementById('globalTagInput').addEventListener('input', () => {
-            updateGlobalPrefix(false);
+        // Dispara ao pressionar Enter nos inputs de prefixo ou tag
+        document.getElementById('globalPrefixInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') applyPrefixWithLoading();
+        });
+        document.getElementById('globalTagInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') applyPrefixWithLoading();
         });
 
-        document.getElementById('applyPrefixBtn').addEventListener('click', () => updateGlobalPrefix(true));
+        document.getElementById('applyPrefixBtn').addEventListener('click', applyPrefixWithLoading);
+
+        // Busca com Debounce (250ms) e Validação de 3 Caracteres Mínimos
+        let searchDebounceTimer = null;
+        const searchInput = document.getElementById('searchInput');
+        const searchHint = document.getElementById('searchHint');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            const trimmed = val.trim();
+
+            if (val.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
+
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+
+            searchDebounceTimer = setTimeout(() => {
+                if (trimmed.length === 0) {
+                    searchHint.classList.add('hidden');
+                    renderGrid('');
+                } else if (trimmed.length < 3) {
+                    searchHint.classList.remove('hidden');
+                } else {
+                    searchHint.classList.add('hidden');
+                    renderGrid(trimmed);
+                }
+            }, 250);
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            searchHint.classList.add('hidden');
+            renderGrid('');
+            searchInput.focus();
+        });
 
         // Renderização do Sandbox Auto-Replace
         function renderSandbox() {
@@ -910,7 +1030,6 @@ configureIcons({
             switchTab('sandbox');
         };
 
-        document.getElementById('searchInput').addEventListener('input', (e) => renderGrid(e.target.value));
         document.getElementById('colorPicker').addEventListener('input', (e) => { iconState.color = e.target.value; updatePreview(); });
         document.getElementById('sizeLessBtn').onclick = () => changeSize(-8);
         document.getElementById('sizeMoreBtn').onclick = () => changeSize(8);
@@ -931,8 +1050,9 @@ configureIcons({
             }
         });
 
-        // Inicialização inicial
-        updateGlobalPrefix(false);
+        // Inicialização do grid inicial e sandbox
+        renderGrid();
+        renderSandbox();
     </script>
 </body>
 </html>

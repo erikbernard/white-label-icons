@@ -4,6 +4,8 @@ Biblioteca de ícones moderna, ultraleve, **100% White-Label** e agnóstica a fr
 
 Permite que **qualquer empresa ou projeto** utilize sua própria identidade de tags (`<empresa-icone>` ou `<meuapp-icon>`), classes CSS (`<i class="empresa-bx-user"></i>`) e diretórios de assets com zero acoplamento de marca e máxima performance com carregamento sob demanda (Lazy Loading e In-Memory Caching).
 
+🌐 **Demonstração & Catálogo Oficial**: [https://erikbernard.github.io/white-label-icons/](https://erikbernard.github.io/white-label-icons/)
+
 ---
 
 ## ⚡ Início Rápido com CLI (Recomendado)
