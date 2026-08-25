@@ -1,6 +1,6 @@
 {
   "name": "@erikbernardo/white-label-icons",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Biblioteca de ícones agnóstica de framework e 100% white-label (Angular, React, Vue, Web Components) com suporte a prefixos customizados e CLI de setup.",
   "type": "module",
   "main": "./index.js",
