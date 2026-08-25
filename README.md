@@ -10,21 +10,50 @@ Permite que **qualquer empresa ou projeto** utilize sua própria identidade de t
 
 ## ⚡ Início Rápido com CLI (Recomendado)
 
-O pacote inclui uma ferramenta CLI para configurar seu projeto em segundos (copiando os SVGs para a pasta de assets do seu projeto e gerando o arquivo de inicialização).
+O pacote inclui uma ferramenta CLI poderosa para configurar seu projeto em segundos (copiando os 6.919 SVGs para a pasta de assets do seu projeto e gerando os arquivos de inicialização específicos para cada framework).
 
-### Modo Interativo (Perguntas no Terminal)
+### 🌟 Como funciona o `init`:
+
+Execute no terminal do seu projeto:
+
 ```bash
 npx @erikbernardo/white-label-icons init
 # ou
 npx wl-icons init
 ```
 
-### Modo Direto (com Flags)
-```bash
-npx wl-icons init --prefix=empresa --tag=empresa-icone --assets=src/assets/icones -y
+O CLI detecta automaticamente o ambiente do projeto ou exibe o menu interativo:
+
+```text
+1. Selecione o ambiente / framework do projeto:
+   [1] Angular 8 a 18 (NgModules / AppModule clássico)
+   [2] Angular 19 / 20+ (Standalone APIs / app.config.ts)
+   [3] React / Next.js / Vite
+   [4] Vue 2 / Vue 3 / Nuxt
+   [5] JavaScript Puro / Vanilla HTML
 ```
 
-#### Opções do CLI:
+---
+
+### ⚡ Modo Direto (com Flags)
+
+Você também pode rodar diretamente especificando o framework e prefixos sem perguntas interativas:
+
+```bash
+# Angular 19 / 20+ (Standalone)
+npx wl-icons init -f angular --prefix=minhaempresa -y
+
+# React / Next.js / Vite
+npx wl-icons init -f react --prefix=app -y
+
+# Angular 8 a 18 (NgModule)
+npx wl-icons init -f angular-legacy --prefix=empresa -y
+
+# Vue 2 / Vue 3
+npx wl-icons init -f vue --prefix=meuapp -y
+```
+
+#### Opções e Flags do CLI:
 | Flag | Descrição | Opções / Padrão |
 | :--- | :--- | :--- |
 | `-f, --framework <tipo>` | Framework do seu projeto | `angular-legacy` (8-18), `angular` (19/20+), `react`, `vue`, `vanilla` |
