@@ -24,14 +24,14 @@ const c = {
 
 function printBanner() {
   console.log(`\n${c.cyan}${c.bright}======================================================${c.reset}`);
-  console.log(`${c.magenta}${c.bright}    🎨 White-Label Icons CLI (@erikbernard/white-label-icons) ${c.reset}`);
+  console.log(`${c.magenta}${c.bright}    🎨 White-Label Icons CLI (@erikbernardo/white-label-icons) ${c.reset}`);
   console.log(`${c.cyan}${c.bright}======================================================${c.reset}\n`);
 }
 
 function printHelp() {
   printBanner();
   console.log(`Uso:
-  ${c.green}npx @erikbernard/white-label-icons init${c.reset} [opções]
+  ${c.green}npx @erikbernardo/white-label-icons init${c.reset} [opções]
   ${c.green}npx wl-icons init${c.reset} [opções]
 
 Opções:
@@ -221,9 +221,9 @@ async function runInit(options) {
   const isTypeScript = initFilePath.endsWith('.ts');
   const code = `/**
  * Configuração dos Ícones White-Label
- * Gerado automaticamente pelo CLI @erikbernard/white-label-icons
+ * Gerado automaticamente pelo CLI @erikbernardo/white-label-icons
  */
-import { configureIcons } from '@erikbernard/white-label-icons';
+import { configureIcons } from '@erikbernardo/white-label-icons';
 
 export function initAppIcons()${isTypeScript ? ': void' : ''} {
   configureIcons({

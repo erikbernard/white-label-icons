@@ -1,4 +1,4 @@
-# @erikbernard/white-label-icons 🎨
+# @erikbernardo/white-label-icons 🎨
 
 Biblioteca de ícones moderna, ultraleve, **100% White-Label** e agnóstica a frameworks. 
 
@@ -12,7 +12,7 @@ O pacote inclui uma ferramenta CLI para configurar seu projeto em segundos (copi
 
 ### Modo Interativo (Perguntas no Terminal)
 ```bash
-npx @erikbernard/white-label-icons init
+npx @erikbernardo/white-label-icons init
 # ou
 npx wl-icons init
 ```
@@ -36,7 +36,7 @@ npx wl-icons init --prefix=empresa --tag=empresa-icone --assets=src/assets/icone
 ## 📦 Instalação Manual via NPM
 
 ```bash
-npm install @erikbernard/white-label-icons
+npm install @erikbernardo/white-label-icons
 ```
 
 ---
@@ -49,7 +49,7 @@ npm install @erikbernard/white-label-icons
 No seu `src/main.ts` (ou `app.config.ts`):
 
 ```typescript
-import { configureIcons } from '@erikbernard/white-label-icons';
+import { configureIcons } from '@erikbernardo/white-label-icons';
 
 configureIcons({
   prefix: 'empresa',             // Classes: <i class="empresa-bx-user">
@@ -88,7 +88,7 @@ configureIcons({
 No ponto de entrada da aplicação (ex: `index.js`, `main.ts`, `App.tsx`):
 
 ```javascript
-import { configureIcons } from '@erikbernard/white-label-icons';
+import { configureIcons } from '@erikbernardo/white-label-icons';
 
 configureIcons({
   prefix: 'app',
@@ -115,7 +115,7 @@ export function Header() {
 ```html
 <!-- Importação direta via script module -->
 <script type="module">
-  import { configureIcons } from './node_modules/@erikbernard/white-label-icons/index.js';
+  import { configureIcons } from './node_modules/@erikbernardo/white-label-icons/index.js';
   
   configureIcons({
     prefix: 'meuapp',
@@ -155,7 +155,7 @@ import {
   registerIcons, 
   replaceIcons, 
   initAutoReplace 
-} from '@erikbernard/white-label-icons';
+} from '@erikbernardo/white-label-icons';
 ```
 
 ### `configureIcons(options: IconOptions)`

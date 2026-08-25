@@ -1,5 +1,5 @@
 {
-  "name": "@erikbernard/white-label-icons",
+  "name": "@erikbernardo/white-label-icons",
   "version": "1.0.0",
   "description": "Biblioteca de ícones agnóstica de framework e 100% white-label (Angular, React, Vue, Web Components) com suporte a prefixos customizados e CLI de setup.",
   "type": "module",
@@ -45,7 +45,7 @@
     "svg",
     "cli"
   ],
-  "author": "Erik Bernard",
+  "author": "Erik Bernardo",
   "license": "MIT",
   "repository": {
     "type": "git",
