@@ -1,0 +1,60 @@
+name: Deploy Landing Page to GitHub Pages
+
+on:
+  # Roda quando a publicação do pacote estiver concluída, ou quando houver push apenas na documentação
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'logo.png'
+      - 'README.md'
+  workflow_run:
+    workflows: ["Publish Package to GitHub Packages"]
+    types:
+      - completed
+
+# Permissões estritas necessárias para o GitHub Pages (OIDC)
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Permite apenas um deploy concorrente
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (for icons build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Icons Registry
+        run: npm run build:icons
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

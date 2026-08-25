@@ -1,0 +1,57 @@
+{
+  "name": "@erikbernard/white-label-icons",
+  "version": "1.0.0",
+  "description": "Biblioteca de ícones agnóstica de framework e 100% white-label (Angular, React, Vue, Web Components) com suporte a prefixos customizados e CLI de setup.",
+  "type": "module",
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "bin": {
+    "wl-icons": "./bin/cli.js",
+    "white-label-icons": "./bin/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    },
+    "./icons-registry": {
+      "types": "./icons-registry.d.ts",
+      "import": "./icons-registry.js",
+      "default": "./icons-registry.js"
+    }
+  },
+  "files": [
+    "bin",
+    "icones",
+    "index.js",
+    "index.d.ts",
+    "icons-registry.js",
+    "icons-registry.d.ts"
+  ],
+  "scripts": {
+    "build:icons": "node build-icons.js",
+    "dev": "npx -y serve ."
+  },
+  "keywords": [
+    "white-label",
+    "icons",
+    "angular",
+    "react",
+    "vue",
+    "web-components",
+    "custom-elements",
+    "svg",
+    "cli"
+  ],
+  "author": "Erik Bernard",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erikbernard/white-label-icons.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
