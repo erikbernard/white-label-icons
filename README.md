@@ -25,13 +25,14 @@ npx wl-icons init --prefix=empresa --tag=empresa-icone --assets=src/assets/icone
 ```
 
 #### Opções do CLI:
-| Flag | Descrição | Padrão |
+| Flag | Descrição | Opções / Padrão |
 | :--- | :--- | :--- |
+| `-f, --framework <tipo>` | Framework do seu projeto | `angular-legacy` (8-18), `angular` (19/20+), `react`, `vue`, `vanilla` |
 | `-p, --prefix <valor>` | Prefixo das classes CSS (`<i class="{prefix}-user">`) | `wl` |
 | `-t, --tag <valor>` | Nome da tag Web Component | `{prefix}-icone` |
-| `-a, --assets <pasta>` | Pasta onde os SVGs serão copiados | `src/assets/icones` |
-| `-i, --init-file <caminho>` | Arquivo de inicialização gerado | `src/icons-init.ts` |
-| `-y, --yes` | Pular perguntas e usar padrões/flags | `false` |
+| `-a, --assets <pasta>` | Pasta onde os 6.919 SVGs serão copiados | Auto-detectado por framework |
+| `-i, --init-file <caminho>` | Arquivo customizado gerado para o framework | Auto-detectado por framework |
+| `-y, --yes` | Pular perguntas e usar detecção automática | `false` |
 
 ---
 
@@ -43,33 +44,47 @@ npm install @erikbernardo/white-label-icons
 
 ---
 
-## 🚀 Como Usar no seu Framework
+## 🚀 Integração por Framework
 
-### 1. Angular (Versões 8 a 20+)
+### 1. Angular 19 e 20+ (Standalone APIs / `app.config.ts`)
 
-#### Passo 1: Inicialização
-No seu `src/main.ts` (ou `app.config.ts`):
+O CLI gera automaticamente o `src/app/icons.config.ts`. Adicione o provider no seu `src/app/app.config.ts`:
 
 ```typescript
-import { configureIcons } from '@erikbernardo/white-label-icons';
+import { ApplicationConfig } from '@angular/core';
+import { provideWhiteLabelIcons } from './icons.config';
 
-configureIcons({
-  prefix: 'empresa',             // Classes: <i class="empresa-bx-user">
-  tagName: 'empresa-icone',       // Tag: <empresa-icone nome="bx-user">
-  basePath: '/assets/icones/',    // Caminho onde os SVGs foram colocados
-  autoReplace: true               // Converte automaticamente tags <i> no DOM
-});
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideWhiteLabelIcons()
+  ]
+};
 ```
 
-> **Dica Angular**: Adicione `CUSTOM_ELEMENTS_SCHEMA` no seu `AppModule` ou `@Component` se estiver usando a sintaxe de Custom Element (`<empresa-icone>`):
-> ```typescript
-> import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-> 
-> @NgModule({
->   schemas: [CUSTOM_ELEMENTS_SCHEMA]
-> })
-> export class AppModule {}
-> ```
+No template HTML dos seus componentes:
+```html
+<empresa-icone nome="bx-user" tamanho="24" cor="#3b82f6"></empresa-icone>
+<i class="empresa-bx-user"></i>
+```
+
+---
+
+### 2. Angular 8 a 18 (NgModules / `AppModule` Clássico)
+
+O CLI gera o `src/app/icons.module.ts` já com `CUSTOM_ELEMENTS_SCHEMA` e inicialização no boot. Basta importar no seu `src/app/app.module.ts`:
+
+```typescript
+import { NgModule } from '@angular/core';
+import { IconsModule } from './icons.module';
+
+@NgModule({
+  imports: [
+    IconsModule,
+    // ...
+  ]
+})
+export class AppModule {}
+```
 
 #### Passo 2: Utilização nos Templates HTML
 
