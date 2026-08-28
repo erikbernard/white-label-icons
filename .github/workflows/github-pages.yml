@@ -10,7 +10,7 @@ on:
       - 'logo.png'
       - 'README.md'
   workflow_run:
-    workflows: ["Publish Package to GitHub Packages"]
+    workflows: ["Publish Package to NPM"]
     types:
       - completed
 

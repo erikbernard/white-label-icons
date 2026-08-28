@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,8 +35,22 @@ jobs:
       - name: Build Icons Registry
         run: npm run build:icons
 
+      - name: Configure Git User
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Auto Bump Version
+        run: |
+          git add icons-registry.js
+          git diff --staged --quiet || git commit -m "chore(build): atualiza registo de ícones [skip ci]"
+          npm version patch -m "chore(release): bump version to %s [skip ci]"
+
       - name: Publish to NPM
-        if: ${{ secrets.NPM_TOKEN != '' }}
-        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+
+      - name: Push Version Update to Main
+        run: git push --follow-tags origin main
+
