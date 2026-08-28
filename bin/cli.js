@@ -23,16 +23,33 @@ const c = {
   gray: '\x1b[90m',
 };
 
+function getPackageInfo() {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'package.json'), 'utf8'));
+    return {
+      name: pkg.name || '@erikbernardo/white-label-icons',
+      version: pkg.version || '1.0.0',
+    };
+  } catch {
+    return {
+      name: '@erikbernardo/white-label-icons',
+      version: '1.0.0',
+    };
+  }
+}
+
+const { name: PACKAGE_NAME, version: PACKAGE_VERSION } = getPackageInfo();
+
 function printBanner() {
   console.log(`\n${c.cyan}${c.bright}======================================================${c.reset}`);
-  console.log(`${c.magenta}${c.bright}    🎨 White-Label Icons CLI (@erikbernardo/white-label-icons) ${c.reset}`);
+  console.log(`${c.magenta}${c.bright}    🎨 White-Label Icons CLI (${PACKAGE_NAME}) ${c.reset}`);
   console.log(`${c.cyan}${c.bright}======================================================${c.reset}\n`);
 }
 
 function printHelp() {
   printBanner();
   console.log(`Uso:
-  ${c.green}npx @erikbernardo/white-label-icons init${c.reset} [opções]
+  ${c.green}npx ${PACKAGE_NAME} init${c.reset} [opções]
   ${c.green}npx wl-icons init${c.reset} [opções]
 
 Opções:
@@ -44,9 +61,10 @@ Opções:
                             ${c.bright}vanilla${c.reset}        (JavaScript Puro / HTML)
   ${c.yellow}-p, --prefix <valor>${c.reset}    Prefixo das classes CSS (ex: 'empresa' para <i class="empresa-bx-user">)
   ${c.yellow}-t, --tag <valor>${c.reset}       Nome da tag Web Component (ex: 'empresa-icone' ou 'empresa-icon')
-  ${c.yellow}-a, --assets <pasta>${c.reset}    Caminho de destino para os arquivos SVG
-  ${c.yellow}-i, --init-file <caminho>${c.reset}Arquivo gerado específico para o framework
+  ${c.yellow}-b, --base-path <url>${c.reset}   Caminho público dos ícones (padrão: '/assets/icones/')
+  ${c.yellow}-i, --init-file <caminho>${c.reset}Arquivo gerado de configuração para o framework
   ${c.yellow}-y, --yes${c.reset}               Aceitar todos os padrões detectados sem perguntas interativas
+  ${c.yellow}--copy-svgs${c.reset}             Forçar a cópia física dos arquivos SVG (não necessário para Angular)
   ${c.yellow}-h, --help${c.reset}              Exibir esta ajuda
   ${c.yellow}-v, --version${c.reset}           Exibir a versão instalada
 `);
@@ -58,9 +76,10 @@ function parseArgs(args) {
     framework: '',
     prefix: '',
     tag: '',
-    assets: '',
+    basePath: '',
     initFile: '',
     yes: false,
+    copySvgs: false,
     help: false,
     version: false,
   };
@@ -75,6 +94,8 @@ function parseArgs(args) {
       parsed.version = true;
     } else if (arg === '-y' || arg === '--yes') {
       parsed.yes = true;
+    } else if (arg === '--copy-svgs') {
+      parsed.copySvgs = true;
     } else if (arg.startsWith('--framework=')) {
       parsed.framework = arg.split('=')[1];
     } else if (arg === '-f' && args[i + 1]) {
@@ -87,10 +108,10 @@ function parseArgs(args) {
       parsed.tag = arg.split('=')[1];
     } else if (arg === '-t' && args[i + 1]) {
       parsed.tag = args[++i];
-    } else if (arg.startsWith('--assets=')) {
-      parsed.assets = arg.split('=')[1];
-    } else if (arg === '-a' && args[i + 1]) {
-      parsed.assets = args[++i];
+    } else if (arg.startsWith('--base-path=') || arg.startsWith('--assets=')) {
+      parsed.basePath = arg.split('=')[1];
+    } else if ((arg === '-b' || arg === '-a') && args[i + 1]) {
+      parsed.basePath = args[++i];
     } else if (arg.startsWith('--init-file=')) {
       parsed.initFile = arg.split('=')[1];
     } else if (arg === '-i' && args[i + 1]) {
@@ -136,15 +157,6 @@ function copyDirectoryRecursive(src, dest) {
   }
 
   return count;
-}
-
-function getPackageVersion() {
-  try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(PACKAGE_ROOT, 'package.json'), 'utf8'));
-    return pkg.version || '1.0.0';
-  } catch {
-    return '1.0.0';
-  }
 }
 
 /**
@@ -215,38 +227,111 @@ function getFrameworkLabel(fw) {
 }
 
 function getDefaultPathsForFramework(fw, isTs) {
-  const cwd = process.cwd();
-  let defaultAssets = 'public/icones';
+  let defaultBasePath = '/assets/icones/';
   let defaultInitFile = isTs ? 'src/icons-init.ts' : 'src/icons-init.js';
 
   switch (fw) {
     case 'angular-legacy':
-      defaultAssets = 'src/assets/icones';
+      defaultBasePath = '/assets/icones/';
       defaultInitFile = isTs ? 'src/app/icons.module.ts' : 'src/app/icons.module.js';
       break;
 
     case 'angular':
-      defaultAssets = fs.existsSync(path.join(cwd, 'public')) ? 'public/icones' : 'src/assets/icones';
+      defaultBasePath = '/assets/icones/';
       defaultInitFile = 'src/app/icons.config.ts';
       break;
 
     case 'react':
-      defaultAssets = 'public/icones';
+      defaultBasePath = '/icones/';
       defaultInitFile = isTs ? 'src/icons.tsx' : 'src/icons.jsx';
       break;
 
     case 'vue':
-      defaultAssets = 'public/icones';
+      defaultBasePath = '/icones/';
       defaultInitFile = isTs ? 'src/plugins/icons.ts' : 'src/plugins/icons.js';
       break;
 
     default: // vanilla
-      defaultAssets = fs.existsSync(path.join(cwd, 'public')) ? 'public/icones' : 'icones';
+      defaultBasePath = './icones/';
       defaultInitFile = isTs ? 'src/icons-init.ts' : 'icons-init.js';
       break;
   }
 
-  return { defaultAssets, defaultInitFile };
+  return { defaultBasePath, defaultInitFile };
+}
+
+/**
+ * Atualiza o angular.json automaticamente para mapear os SVGs do node_modules
+ */
+function configureAngularJson(basePath) {
+  const angularJsonPath = path.resolve(process.cwd(), 'angular.json');
+
+  if (!fs.existsSync(angularJsonPath)) {
+    return { success: false, reason: 'angular.json não encontrado' };
+  }
+
+  try {
+    const rawContent = fs.readFileSync(angularJsonPath, 'utf8');
+    const angularJson = JSON.parse(rawContent);
+    const projects = angularJson.projects || {};
+    let modified = false;
+
+    // Normaliza o caminho de saída (ex: '/assets/icones/' -> '/assets/icones/')
+    let outputDir = basePath;
+    if (!outputDir.startsWith('/')) outputDir = '/' + outputDir;
+    if (!outputDir.endsWith('/')) outputDir += '/';
+
+    const assetEntry = {
+      glob: '**/*.svg',
+      input: `node_modules/${PACKAGE_NAME}/icones`,
+      output: outputDir,
+    };
+
+    for (const [projectName, projectConfig] of Object.entries(projects)) {
+      const architect = projectConfig.architect || projectConfig.targets || {};
+
+      // 1. Configura no target "build"
+      if (architect.build && architect.build.options) {
+        if (!Array.isArray(architect.build.options.assets)) {
+          architect.build.options.assets = [];
+        }
+        const assets = architect.build.options.assets;
+        const exists = assets.some(
+          (a) => typeof a === 'object' && a.input && (a.input.includes(PACKAGE_NAME) || a.input.includes('white-label-icons') || a.input.includes('gt-controller-icones'))
+        );
+
+        if (!exists) {
+          assets.push(assetEntry);
+          modified = true;
+        }
+      }
+
+      // 2. Configura no target "test"
+      if (architect.test && architect.test.options) {
+        if (!Array.isArray(architect.test.options.assets)) {
+          architect.test.options.assets = [];
+        }
+        const assets = architect.test.options.assets;
+        const exists = assets.some(
+          (a) => typeof a === 'object' && a.input && (a.input.includes(PACKAGE_NAME) || a.input.includes('white-label-icons') || a.input.includes('gt-controller-icones'))
+        );
+
+        if (!exists) {
+          assets.push(assetEntry);
+          modified = true;
+        }
+      }
+    }
+
+    if (modified) {
+      fs.writeFileSync(angularJsonPath, JSON.stringify(angularJson, null, 2), 'utf8');
+      return { success: true, modified: true };
+    }
+
+    return { success: true, modified: false };
+  } catch (err) {
+    return { success: false, reason: err.message };
+  }
 }
 
 /**
@@ -257,10 +342,10 @@ function generateInitFileContent(framework, prefix, tag, webBasePath, isTs) {
     case 'angular-legacy':
       return `/**
  * Módulo de Ícones White-Label para Angular 8 a 18 (NgModule)
- * Gerado automaticamente pelo CLI @erikbernardo/white-label-icons
+ * Gerado automaticamente pelo CLI ${PACKAGE_NAME}
  */
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA, APP_INITIALIZER } from '@angular/core';
-import { configureIcons } from '@erikbernardo/white-label-icons';
+import { configureIcons } from '${PACKAGE_NAME}';
 
 export function initializeWhiteLabelIcons() {
   return () => {
@@ -289,10 +374,10 @@ export class IconsModule {}
     case 'angular':
       return `/**
  * Provider de Ícones White-Label para Angular 19 e 20+ (Standalone APIs)
- * Gerado automaticamente pelo CLI @erikbernardo/white-label-icons
+ * Gerado automaticamente pelo CLI ${PACKAGE_NAME}
  */
 import { EnvironmentProviders, makeEnvironmentProviders, ENVIRONMENT_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { configureIcons, IconOptions } from '@erikbernardo/white-label-icons';
+import { configureIcons, IconOptions } from '${PACKAGE_NAME}';
 
 /**
  * Adicione este provider no seu app.config.ts:
@@ -325,10 +410,10 @@ export const ICONS_SCHEMAS = [CUSTOM_ELEMENTS_SCHEMA];
     case 'react':
       return `/**
  * Wrapper de Ícones White-Label para React / Next.js
- * Gerado automaticamente pelo CLI @erikbernardo/white-label-icons
+ * Gerado automaticamente pelo CLI ${PACKAGE_NAME}
  */
 import React from 'react';
-import { configureIcons } from '@erikbernardo/white-label-icons';
+import { configureIcons } from '${PACKAGE_NAME}';
 
 // Inicializa no cliente
 export function initIcons(): void {
@@ -372,9 +457,9 @@ export const Icon: React.FC<IconProps> = ({ name, size, color, rotate, flip, cla
     case 'vue':
       return `/**
  * Plugin de Ícones White-Label para Vue 2 / Vue 3
- * Gerado automaticamente pelo CLI @erikbernardo/white-label-icons
+ * Gerado automaticamente pelo CLI ${PACKAGE_NAME}
  */
-import { configureIcons } from '@erikbernardo/white-label-icons';
+import { configureIcons } from '${PACKAGE_NAME}';
 
 export const IconsPlugin = {
   install(${isTs ? 'app: any' : 'app'}) {
@@ -401,9 +486,9 @@ if (typeof window !== 'undefined') {
     default: // vanilla
       return `/**
  * Configuração dos Ícones White-Label (JavaScript Puro / HTML)
- * Gerado automaticamente pelo CLI @erikbernardo/white-label-icons
+ * Gerado automaticamente pelo CLI ${PACKAGE_NAME}
  */
-import { configureIcons } from '@erikbernardo/white-label-icons';
+import { configureIcons } from '${PACKAGE_NAME}';
 
 export function initAppIcons()${isTs ? ': void' : ''} {
   configureIcons({
@@ -431,7 +516,7 @@ async function runInit(options) {
   let framework = normalizeFramework(options.framework);
   let prefix = options.prefix;
   let tag = options.tag;
-  let assetsPath = options.assets;
+  let basePath = options.basePath;
   let initFilePath = options.initFile;
 
   const isInteractive = !options.yes && process.stdin.isTTY;
@@ -457,7 +542,7 @@ async function runInit(options) {
         'angular': '2',
         'react': '3',
         'vue': '4',
-        'vanilla': '5'
+        'vanilla': '5',
       };
       const defaultChoice = fwChoiceMap[detectedFw] || '1';
 
@@ -465,7 +550,7 @@ async function runInit(options) {
       framework = normalizeFramework(answer) || detectedFw;
     }
 
-    const { defaultAssets, defaultInitFile } = getDefaultPathsForFramework(framework, isTs);
+    const { defaultBasePath, defaultInitFile } = getDefaultPathsForFramework(framework, isTs);
 
     if (!prefix) {
       prefix = await askQuestion(rl, '2. Qual prefixo de classe deseja usar para os ícones? (ex: empresa, app, wl)', 'wl');
@@ -476,8 +561,8 @@ async function runInit(options) {
       tag = await askQuestion(rl, `3. Qual tag Web Component deseja registrar?`, defaultTag);
     }
 
-    if (!assetsPath) {
-      assetsPath = await askQuestion(rl, '4. Onde deseja copiar os arquivos SVG no seu projeto?', defaultAssets);
+    if (!basePath) {
+      basePath = await askQuestion(rl, '4. Rota pública base dos ícones (URL):', defaultBasePath);
     }
 
     if (!initFilePath) {
@@ -491,8 +576,8 @@ async function runInit(options) {
     framework = framework || detectedFw || 'vanilla';
     prefix = prefix || 'wl';
     tag = tag || `${prefix}-icone`;
-    const { defaultAssets, defaultInitFile } = getDefaultPathsForFramework(framework, isTs);
-    assetsPath = assetsPath || defaultAssets;
+    const { defaultBasePath, defaultInitFile } = getDefaultPathsForFramework(framework, isTs);
+    basePath = basePath || defaultBasePath;
     initFilePath = initFilePath || defaultInitFile;
   }
 
@@ -502,34 +587,60 @@ async function runInit(options) {
     tag = `${tag}-icone`;
   }
 
-  const targetAssetsDir = path.resolve(process.cwd(), assetsPath);
+  if (!basePath.startsWith('/') && !basePath.startsWith('./')) {
+    basePath = '/' + basePath;
+  }
+  if (!basePath.endsWith('/')) {
+    basePath += '/';
+  }
+
   const targetInitFile = path.resolve(process.cwd(), initFilePath);
 
   console.log(`${c.cyan}⚙️  Configurações selecionadas:${c.reset}`);
   console.log(`   • Ambiente / Framework: ${c.green}${getFrameworkLabel(framework)}${c.reset}`);
   console.log(`   • Prefixo CSS:          ${c.green}${prefix}${c.reset}  (ex: <i class="${prefix}-bx-user"></i>)`);
   console.log(`   • Tag Web Component:    ${c.green}<${tag}>${c.reset}  (ex: <${tag} nome="bx-user"></${tag}>)`);
-  console.log(`   • Pasta de SVGs:        ${c.green}${assetsPath}${c.reset}`);
+  console.log(`   • Rota de Assets (URL): ${c.green}${basePath}${c.reset}`);
   console.log(`   • Arquivo de Init:      ${c.green}${initFilePath}${c.reset}\n`);
 
-  // 1. Cópia de SVGs
-  console.log(`${c.bright}📦 Copiando 6.919 ícones SVG para "${assetsPath}"...${c.reset}`);
-  try {
-    const copiedCount = copyDirectoryRecursive(SOURCE_ICONS_DIR, targetAssetsDir);
-    console.log(`${c.green}✔ ${copiedCount} ícones SVG copiados com sucesso!${c.reset}\n`);
-  } catch (err) {
-    console.error(`${c.red}❌ Falha ao copiar ícones:${c.reset}`, err.message);
-    process.exit(1);
+  // 1. Configuração Automática do angular.json (se for projeto Angular)
+  const isAngular = framework === 'angular' || framework === 'angular-legacy';
+  if (isAngular) {
+    console.log(`${c.bright}⚙️  Configurando mapeamento de assets no "angular.json"...${c.reset}`);
+    const ngResult = configureAngularJson(basePath);
+    if (ngResult.success) {
+      if (ngResult.modified) {
+        console.log(`${c.green}✔ "angular.json" atualizado com sucesso! (SVGs serão servidos direto do node_modules sem poluir o Git).${c.reset}\n`);
+      } else {
+        console.log(`${c.green}✔ "angular.json" já possuía a regra de assets configurada.${c.reset}\n`);
+      }
+    } else {
+      console.warn(`${c.yellow}⚠️  Aviso: Não foi possível atualizar o angular.json automaticamente (${ngResult.reason}).${c.reset}`);
+      console.warn(`   Certifique-se de adicionar a seguinte regra manualmente em "assets":`);
+      console.warn(`   {\n     "glob": "**/*.svg",\n     "input": "node_modules/${PACKAGE_NAME}/icones",\n     "output": "${basePath}"\n   }\n`);
+    }
   }
 
-  // 2. Criação do arquivo de inicialização específico do framework
-  console.log(`${c.bright}📝 Gerando arquivo de inicialização customizado para ${getFrameworkLabel(framework)}...${c.reset}`);
-  
-  let webBasePath = assetsPath.replace(/^src\//, '').replace(/^public\//, '');
-  if (!webBasePath.startsWith('/')) webBasePath = '/' + webBasePath;
-  if (!webBasePath.endsWith('/')) webBasePath += '/';
+  // 2. Cópia opcional para projetos não-Angular ou com flag --copy-svgs
+  if (options.copySvgs || (!isAngular && (framework === 'react' || framework === 'vue' || framework === 'vanilla'))) {
+    const publicDir = fs.existsSync(path.join(process.cwd(), 'public'))
+      ? path.join(process.cwd(), 'public/icones')
+      : path.join(process.cwd(), 'icones');
 
-  const code = generateInitFileContent(framework, prefix, tag, webBasePath, isTs);
+    if (options.copySvgs) {
+      console.log(`${c.bright}📦 Copiando arquivos SVG para "${publicDir}" (--copy-svgs)...${c.reset}`);
+      try {
+        const copied = copyDirectoryRecursive(SOURCE_ICONS_DIR, publicDir);
+        console.log(`${c.green}✔ ${copied} ícones copiados para "${publicDir}".${c.reset}\n`);
+      } catch (err) {
+        console.warn(`${c.yellow}⚠️  Não foi possível copiar os ícones: ${err.message}${c.reset}\n`);
+      }
+    }
+  }
+
+  // 3. Criação do arquivo de inicialização específico do framework
+  console.log(`${c.bright}📝 Gerando arquivo de inicialização para ${getFrameworkLabel(framework)}...${c.reset}`);
+  const code = generateInitFileContent(framework, prefix, tag, basePath, isTs);
 
   try {
     fs.mkdirSync(path.dirname(targetInitFile), { recursive: true });
@@ -539,21 +650,20 @@ async function runInit(options) {
     console.error(`${c.red}❌ Falha ao criar arquivo de inicialização:${c.reset}`, err.message);
   }
 
-  // 3. Verificações de Projetos e Instruções Específicas
-  console.log(`${c.cyan}${c.bright}🚀 Pronto! Como utilizar no seu projeto:${c.reset}\n`);
+  // 4. Instruções Finais
+  console.log(`${c.cyan}${c.bright}🚀 Tudo pronto! Como utilizar no seu projeto:${c.reset}\n`);
 
   if (framework === 'angular-legacy') {
     console.log(`1. Importe o ${c.yellow}IconsModule${c.reset} no seu ${c.yellow}src/app/app.module.ts${c.reset}:`);
     console.log(`   ${c.green}import { IconsModule } from './icons.module';${c.reset}`);
     console.log(`   ${c.green}@NgModule({ imports: [IconsModule, ...], ... })${c.reset}\n`);
-    console.log(`2. Certifique-se de que "${assetsPath}" está em "assets" no seu ${c.yellow}angular.json${c.reset}.`);
   } else if (framework === 'angular') {
     console.log(`1. Adicione o provider no seu ${c.yellow}src/app/app.config.ts${c.reset}:`);
     console.log(`   ${c.green}import { provideWhiteLabelIcons } from './icons.config';${c.reset}`);
     console.log(`   ${c.green}export const appConfig: ApplicationConfig = { providers: [provideWhiteLabelIcons(), ...] };${c.reset}\n`);
     console.log(`2. Em componentes Standalone que usam a tag <${tag}>, inclua o schema:`);
     console.log(`   ${c.green}import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';${c.reset}`);
-    console.log(`   ${c.green}@Component({ schemas: [CUSTOM_ELEMENTS_SCHEMA], ... })${c.reset}`);
+    console.log(`   ${c.green}@Component({ schemas: [CUSTOM_ELEMENTS_SCHEMA], ... })${c.reset}\n`);
   } else if (framework === 'react') {
     console.log(`1. Importe o componente no seu JSX/TSX:`);
     console.log(`   ${c.green}import { Icon } from './${path.basename(initFilePath, path.extname(initFilePath))}';${c.reset}`);
@@ -562,14 +672,12 @@ async function runInit(options) {
     console.log(`1. Registre o plugin no seu ${c.yellow}src/main.ts${c.reset} / ${c.yellow}src/main.js${c.reset}:`);
     console.log(`   ${c.green}import { IconsPlugin } from './plugins/icons';${c.reset}`);
     console.log(`   ${c.green}app.use(IconsPlugin);${c.reset}\n`);
-    console.log(`2. Se usar Vite, adicione a tag aos custom elements no ${c.yellow}vite.config.ts${c.reset}:`);
-    console.log(`   ${c.gray}vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith('${prefix}-') } } })${c.reset}`);
   } else {
     console.log(`1. Importe o arquivo gerado no seu ponto de entrada (ex: ${c.yellow}index.html${c.reset} ou ${c.yellow}main.js${c.reset}):`);
-    console.log(`   ${c.green}<script type="module" src="./${initFilePath}"></script>${c.reset}`);
+    console.log(`   ${c.green}<script type="module" src="./${initFilePath}"></script>${c.reset}\n`);
   }
 
-  console.log(`\n${c.bright}Uso nos Templates / HTML:${c.reset}`);
+  console.log(`${c.bright}Uso nos Templates HTML:${c.reset}`);
   console.log(`   • Via Custom Element: ${c.green}<${tag} nome="bx-user" tamanho="24" cor="#3b82f6"></${tag}>${c.reset}`);
   console.log(`   • Via Classe CSS:     ${c.green}<i class="${prefix}-bx-user"></i>${c.reset}\n`);
 }
@@ -579,7 +687,7 @@ async function main() {
   const options = parseArgs(args);
 
   if (options.version) {
-    console.log(`v${getPackageVersion()}`);
+    console.log(`v${PACKAGE_VERSION}`);
     process.exit(0);
   }
 
@@ -595,3 +703,4 @@ main().catch((err) => {
   console.error(`${c.red}Erro inesperado:${c.reset}`, err);
   process.exit(1);
 });
+

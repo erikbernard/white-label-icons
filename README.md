@@ -2,7 +2,7 @@
 
 Biblioteca de ícones moderna, ultraleve, **100% White-Label** e agnóstica a frameworks. 
 
-Permite que **qualquer empresa ou projeto** utilize sua própria identidade de tags (`<empresa-icone>` ou `<meuapp-icon>`), classes CSS (`<i class="empresa-bx-user"></i>`) e diretórios de assets com zero acoplamento de marca e máxima performance com carregamento sob demanda (Lazy Loading e In-Memory Caching).
+Permite que **qualquer empresa ou projeto** utilize sua própria identidade de tags (`<empresa-icone>` ou `<meuapp-icon>`), classes CSS (`<i class="empresa-bx-user"></i>`) e rotas de assets com zero acoplamento de marca e máxima performance com carregamento sob demanda (Lazy Loading e In-Memory Caching).
 
 🌐 **Demonstração & Catálogo Oficial**: [https://erikbernard.github.io/white-label-icons/](https://erikbernard.github.io/white-label-icons/)
 
@@ -10,11 +10,11 @@ Permite que **qualquer empresa ou projeto** utilize sua própria identidade de t
 
 ## ⚡ Início Rápido com CLI (Recomendado)
 
-O pacote inclui uma ferramenta CLI poderosa para configurar seu projeto em segundos (copiando os 6.919 SVGs para a pasta de assets do seu projeto e gerando os arquivos de inicialização específicos para cada framework).
+O pacote inclui uma ferramenta CLI que configura seu projeto em segundos. Para projetos Angular, o CLI **configura automaticamente o `angular.json`** para servir os SVGs direto do `node_modules` (sem poluir seu repositório Git com 7.000 arquivos).
 
-### 🌟 Como funciona o `init`:
+### 🌟 Como rodar o setup:
 
-Execute no terminal do seu projeto:
+Execute no terminal da raiz do seu projeto:
 
 ```bash
 npx @erikbernardo/white-label-icons init
@@ -59,17 +59,37 @@ npx wl-icons init -f vue --prefix=meuapp -y
 | `-f, --framework <tipo>` | Framework do seu projeto | `angular-legacy` (8-18), `angular` (19/20+), `react`, `vue`, `vanilla` |
 | `-p, --prefix <valor>` | Prefixo das classes CSS (`<i class="{prefix}-user">`) | `wl` |
 | `-t, --tag <valor>` | Nome da tag Web Component | `{prefix}-icone` |
-| `-a, --assets <pasta>` | Pasta onde os 6.919 SVGs serão copiados | Auto-detectado por framework |
+| `-b, --base-path <url>` | Rota pública base dos ícones (URL) | `/assets/icones/` (Angular) ou `/icones/` |
 | `-i, --init-file <caminho>` | Arquivo customizado gerado para o framework | Auto-detectado por framework |
 | `-y, --yes` | Pular perguntas e usar detecção automática | `false` |
+| `--copy-svgs` | Forçar cópia de SVGs para disco (desnecessário no Angular) | `false` |
 
 ---
 
-## 📦 Instalação Manual via NPM
+## 📦 Instalação Manual no Angular (Sem CLI)
 
+Se preferir configurar manualmente sem o CLI:
+
+### 1. Instalar o pacote
 ```bash
 npm install @erikbernardo/white-label-icons
 ```
+
+### 2. Configurar o `angular.json`
+No seu `angular.json`, dentro de `projects > [seu-projeto] > architect > build > options > assets`, adicione a regra de mapeamento:
+
+```json
+"assets": [
+  "src/favicon.ico",
+  "src/assets",
+  {
+    "glob": "**/*.svg",
+    "input": "node_modules/@erikbernard/white-label-icons/icones",
+    "output": "/assets/icones/"
+  }
+]
+```
+*(Repita também dentro de `architect > test > options > assets` caso queira suporte nos testes unitários).*
 
 ---
 
@@ -115,7 +135,7 @@ import { IconsModule } from './icons.module';
 export class AppModule {}
 ```
 
-#### Passo 2: Utilização nos Templates HTML
+#### Utilização nos Templates HTML:
 
 ```html
 <!-- Opção A: Via Custom Element Nativo -->
