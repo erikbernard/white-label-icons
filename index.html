@@ -177,18 +177,54 @@
                 <span class="text-sm font-semibold text-slate-700">Atualizando todos os ícones...</span>
             </div>
 
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-900">Ícones Disponíveis</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Clique em qualquer ícone para customizar, copiar código ou enviar direto ao Playground</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span id="searchHint" class="text-xs text-amber-600 font-medium hidden">Digite pelo menos 3 letras...</span>
-                    <span id="iconCounter" class="text-xs text-white font-bold bg-blue-600 px-3 py-1.5 rounded-lg shadow-sm">0 ícones</span>
-                </div>
-            </div>
+            <!-- Two-Column Layout: Sidebar on Left, Main Content on Right -->
+            <div class="flex flex-col lg:flex-row gap-6 items-start">
+                <!-- Sidebar de Categorias -->
+                <aside class="w-full lg:w-64 shrink-0 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm lg:sticky lg:top-24 max-h-[calc(100vh-120px)] flex flex-col">
+                    <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-600">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span class="font-bold text-sm text-slate-800">Categorias</span>
+                        </div>
+                        <span id="categoryTotalBadge" class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">30</span>
+                    </div>
 
-            <div id="iconGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+                    <!-- Lista de Categorias com scroll customizado -->
+                    <div id="categoryList" class="overflow-y-auto pr-1 space-y-1 flex-1 text-xs">
+                        <!-- Gerado dinamicamente pelo JavaScript -->
+                    </div>
+                </aside>
+
+                <!-- Área Principal do Catálogo -->
+                <section class="flex-1 min-w-0 w-full flex flex-col">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                        <div>
+                            <h2 id="currentCategoryTitle" class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <span>Todos os Ícones</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Clique em qualquer ícone para customizar, copiar código ou enviar direto ao Playground</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="searchHint" class="text-xs text-amber-600 font-medium hidden">Digite pelo menos 3 letras...</span>
+                            <span id="iconCounter" class="text-xs text-white font-bold bg-blue-600 px-3 py-1.5 rounded-lg shadow-sm">0 ícones</span>
+                        </div>
+                    </div>
+
+                    <!-- Grid de Ícones -->
+                    <div id="iconGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3.5"></div>
+
+                    <!-- Barra de Paginação -->
+                    <div id="paginationContainer" class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                        <span id="paginationInfo" class="text-xs text-slate-500 font-medium">Mostrando 1 - 72 de 6919 ícones</span>
+                        <div id="paginationButtons" class="flex items-center gap-1.5 flex-wrap justify-center"></div>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <!-- View 2: Documentation & CLI Guide -->
@@ -534,46 +570,214 @@ configureIcons({
             });
         }
 
-        // Renderiza o grid de ícones no catálogo com alta performance (DocumentFragment)
-        function renderGrid(filter = '') {
+        // Definição Completa e Estruturada de Categorias de Ícones
+        const categories = [
+            { id: 'all', name: 'Todos os Ícones', nameEn: 'All Icons', icon: 'bx-grid-alt' },
+            { id: 'accessibility', name: 'Acessibilidade', nameEn: 'Accessibility', icon: 'bx-accessibility', keywords: ['accessibility', 'wheelchair', 'blind', 'braille', 'deaf', 'ear', 'low-vision', 'sign-language', 'universal-access', 'audio-description', 'closed-captioning', 'hearing', 'cane', 'guide-dog'] },
+            { id: 'sports', name: 'Atividades & Esportes', nameEn: 'Activities & Sports', icon: 'bx-game', keywords: ['game', 'gamepad', 'joystick', 'dice', 'chess', 'knight', 'queen', 'king', 'pawn', 'bishop', 'rook', 'ball', 'football', 'soccer', 'basketball', 'baseball', 'tennis', 'bowling', 'golf', 'volleyball', 'billiards', '8-ball', 'pool', 'trophy', 'medal', 'award', 'crown', 'podium', 'target', 'dart', 'skate', 'ski', 'swim', 'fitness', 'dumbbell', 'gym', 'workout', 'boxing', 'flag-checkered', 'whistle', 'medal-gold', 'badge-honor'] },
+            { id: 'alerts', name: 'Alertas & Notificações', nameEn: 'Alerts & Info', icon: 'bx-bell', keywords: ['alert', 'bell', 'alarm', 'warning', 'info', 'help', 'question', 'error', 'danger', 'exclamation', 'notification', 'shield-alert', 'shield-x', 'badge', 'notice', 'announcement', 'megaphone', 'bullhorn', 'flag', 'beacon', 'siren', 'radiation', 'biohazard'] },
+            { id: 'animals', name: 'Animais & Natureza', nameEn: 'Animals & Nature', icon: 'bx-leaf', keywords: ['animal', 'cat', 'dog', 'bird', 'fish', 'horse', 'cow', 'pig', 'sheep', 'frog', 'spider', 'bug', 'bee', 'butterfly', 'dragon', 'dinosaur', 'paw', 'bone', 'feather', 'tree', 'leaf', 'plant', 'flower', 'seed', 'forest', 'nature', 'sprout', 'cactus', 'clover', 'acorn', 'wood'] },
+            { id: 'arrows', name: 'Setas & Navegação', nameEn: 'Arrows', icon: 'bx-arrow-right', keywords: ['arrow', 'chevron', 'caret', 'corner', 'transfer', 'sort', 'swap', 'expand', 'collapse', 'direction', 'up', 'down', 'left', 'right', 'north', 'south', 'east', 'west', 'turn', 'rotate', 'redo', 'undo', 'repeat', 'refresh', 'sync', 'recycle', 'shuffle', 'forward', 'backward', 'rewind', 'skip', 'first-page', 'last-page', 'navigation', 'compass', 'route', 'guide', 'orbit', 'way', 'path', 'crosshairs'] },
+            { id: 'brands', name: 'Marcas & Logos', nameEn: 'Brands & Logos', icon: 'bx-globe', keywords: ['500px', '99designs', 'adobe', 'airbnb', 'algolia', 'amazon', 'amex', 'android', 'angular', 'apple', 'aws', 'behance', 'blogger', 'bluetooth', 'bootstrap', 'cc-', 'c-plus-plus', 'centos', 'chrome', 'cloudflare', 'codepen', 'cpanel', 'creative-commons', 'css3', 'dailymotion', 'deezer', 'deviantart', 'dev-to', 'digg', 'digitalocean', 'discord', 'disney', 'docker', 'dribbble', 'dropbox', 'drupal', 'ebay', 'edge', 'etsy', 'evernote', 'facebook', 'fedora', 'figma', 'firebase', 'firefox', 'flickr', 'foursquare', 'git', 'github', 'gitlab', 'gmail', 'google', 'graphql', 'html5', 'imdb', 'instagram', 'internet-explorer', 'invision', 'ios', 'java', 'javascript', 'joomla', 'jsfiddle', 'kickstarter', 'laravel', 'linkedin', 'linux', 'lyft', 'magento', 'mailchimp', 'mastodon', 'mastercard', 'medium', 'messenger', 'meta', 'microsoft', 'mongodb', 'netflix', 'nodejs', 'notion', 'npm', 'opera', 'patreon', 'paypal', 'php', 'pinterest', 'play-store', 'playstation', 'postgresql', 'python', 'quora', 'react', 'redhat', 'reddit', 'safari', 'sass', 'shopify', 'sketch', 'skype', 'slack', 'snapchat', 'soundcloud', 'spotify', 'stack-overflow', 'steam', 'stripe', 'svelte', 'tailwind', 'telegram', 'tiktok', 'trello', 'tumblr', 'twitch', 'twitter', 'typescript', 'ubuntu', 'uber', 'unity', 'unreal', 'viber', 'vimeo', 'visa', 'vk', 'vue', 'vuejs', 'whatsapp', 'wikipedia', 'windows', 'wix', 'wordpress', 'xbox', 'yahoo', 'yarn', 'yelp', 'youtube', 'zoom'] },
+            { id: 'buildings', name: 'Edifícios & Lugares', nameEn: 'Buildings & Places', icon: 'bx-building', keywords: ['building', 'house', 'home', 'castle', 'monument', 'church', 'temple', 'mosque', 'synagogue', 'hospital', 'bank', 'school', 'university', 'barn', 'warehouse', 'factory', 'bridge', 'tower', 'stadium', 'theater', 'store', 'shop', 'hotel', 'garage', 'gas-station'] },
+            { id: 'business', name: 'Negócios & Finanças', nameEn: 'Business & Finance', icon: 'bx-briefcase', keywords: ['money', 'dollar', 'euro', 'pound', 'yen', 'bitcoin', 'credit-card', 'bank', 'wallet', 'coins', 'cash', 'calculator', 'receipt', 'invoice', 'briefcase', 'company', 'handshake', 'deal', 'contract', 'signature', 'tax', 'currency', 'vault', 'safe', 'invest', 'treasury', 'capital', 'piggy', 'donate', 'fund', 'atm', 'badge-dollar', 'badge-percent', 'percentage', 'discount', 'coupon', 'stamp', 'trade', 'finance', 'gold'] },
+            { id: 'charts', name: 'Gráficos & Estatísticas', nameEn: 'Charts', icon: 'bx-line-chart', keywords: ['chart', 'graph', 'analytics', 'statistic', 'bar-chart', 'pie-chart', 'line-chart', 'area-chart', 'donut', 'scatter', 'trend', 'growth', 'decrease', 'increase', 'dashboard', 'report', 'metric', 'poll', 'vote', 'target', 'funnel', 'diagram', 'ranking'] },
+            { id: 'clothing', name: 'Moda & Vestuário', nameEn: 'Clothing & Fashion', icon: 'bx-closet', keywords: ['shirt', 'tshirt', 't-shirt', 'pants', 'trousers', 'shorts', 'dress', 'skirt', 'jacket', 'coat', 'suit', 'tie', 'hat', 'cap', 'shoe', 'boot', 'sneaker', 'socks', 'glove', 'glasses', 'sunglasses', 'ring', 'gem', 'necklace', 'hanger', 'closet', 'bag', 'purse', 'umbrella'] },
+            { id: 'coding', name: 'Código & Desenvolvimento', nameEn: 'Coding & Development', icon: 'bx-code-alt', keywords: ['code', 'terminal', 'command', 'prompt', 'branch', 'commit', 'merge', 'pull-request', 'fork', 'bug', 'debug', 'api', 'json', 'xml', 'brackets', 'curly', 'slash', 'lambda', 'binary', 'variable', 'function', 'syntax', 'source', 'framework', 'package', 'plugin', 'module', 'console', 'sitemap', 'hierarchy', 'workflow', 'algorithm'] },
+            { id: 'communication', name: 'Comunicação & Mensagens', nameEn: 'Communications', icon: 'bx-message-rounded', keywords: ['message', 'chat', 'comment', 'conversation', 'envelope', 'mail', 'inbox', 'send', 'paper-plane', 'phone', 'telephone', 'mobile', 'call', 'voicemail', 'sms', 'feedback', 'contact', 'quote', 'bubble', 'dialog', 'discuss', 'mention', 'at', 'podcast', 'broadcast', 'walkie-talkie', 'rss', 'feed'] },
+            { id: 'connectivity', name: 'Conectividade & Redes', nameEn: 'Connectivity', icon: 'bx-wifi', keywords: ['wifi', 'signal', 'antenna', 'bluetooth', 'broadcast', 'cast', 'network', 'router', 'satellite', 'tower-broadcast', 'lan', 'ethernet', 'connection', 'radio-tower', 'nfc', 'radar', 'sonar', 'wave', 'hotspot'] },
+            { id: 'cursors', name: 'Cursores & Ponteiros', nameEn: 'Cursors & Loaders', icon: 'bx-pointer', keywords: ['cursor', 'pointer', 'hand-pointer', 'mouse-pointer', 'click', 'drag', 'touch', 'grab', 'grabbing', 'select', 'spinner', 'loader', 'loading', 'progress', 'wait', 'crosshair', 'target-lock'] },
+            { id: 'datetime', name: 'Data & Hora', nameEn: 'Date & Time', icon: 'bx-time-five', keywords: ['time', 'clock', 'hour', 'minute', 'second', 'timer', 'stopwatch', 'calendar', 'date', 'schedule', 'event', 'appointment', 'history', 'deadline', 'hourglass', 'sandglass', 'period', 'chronometer', 'quarter', 'watch', 'sun-time'] },
+            { id: 'design', name: 'Design & Fotografia', nameEn: 'Design', icon: 'bx-palette', keywords: ['palette', 'brush', 'paint', 'pen', 'pencil', 'edit', 'draw', 'eraser', 'color', 'picker', 'pipette', 'eyedropper', 'crop', 'layer', 'vector', 'shape', 'ruler', 'bezier', 'canvas', 'image', 'photo', 'picture', 'frame', 'art', 'magic', 'wand', 'typography', 'font', 'gradient', 'mask', 'filter', 'contrast', 'brightness', 'blur', 'aspect-ratio', 'swatch', 'vector-square', 'camera', 'aperture', 'lens', 'shutter'] },
+            { id: 'devices', name: 'Dispositivos & Hardware', nameEn: 'Devices', icon: 'bx-laptop', keywords: ['laptop', 'computer', 'desktop', 'screen', 'monitor', 'tv', 'display', 'tablet', 'smartphone', 'keyboard', 'mouse', 'printer', 'hard-drive', 'hdd', 'ssd', 'usb', 'cpu', 'chip', 'microchip', 'server', 'database', 'datacenter', 'headphone', 'headset', 'speaker', 'mic', 'microphone', 'webcam', 'radio', 'battery', 'plug', 'power', 'cable', 'projector', 'drone', 'vr', 'sim-card', 'sd-card'] },
+            { id: 'ecommerce', name: 'E-Commerce & Compras', nameEn: 'E-Commerce', icon: 'bx-cart', keywords: ['cart', 'shopping', 'basket', 'bag', 'store', 'shop', 'tag', 'price', 'barcode', 'qr-code', 'package', 'box', 'gift', 'delivery', 'shipping', 'truck', 'sale', 'order', 'purchase', 'pos', 'checkout', 'trolley', 'shelf', 'marketplace', 'vendor'] },
+            { id: 'emojis', name: 'Emojis & Sentimentos', nameEn: 'Emojis', icon: 'bx-smile', keywords: ['smile', 'laugh', 'grin', 'wink', 'sad', 'frown', 'cry', 'angry', 'rage', 'dizzy', 'meh', 'neutral', 'confused', 'shocked', 'tired', 'sleepy', 'bored', 'kiss', 'heart-eyes', 'sunglasses', 'cool', 'clown', 'ghost', 'skull', 'poop', 'alien', 'robot', 'face', 'emotion', 'hand-peace', 'thumbs-up', 'thumbs-down', 'heart', 'like', 'dislike'] },
+            { id: 'entertainment', name: 'Entretenimento & Mídia', nameEn: 'Entertainment', icon: 'bx-music', keywords: ['music', 'audio', 'sound', 'volume', 'mute', 'play', 'pause', 'stop', 'track', 'album', 'song', 'playlist', 'video', 'movie', 'film', 'cinema', 'clapperboard', 'ticket', 'disc', 'cd', 'dvd', 'vinyl', 'karaoke', 'guitar', 'piano', 'drum', 'equalizer', 'tape', 'cassette', 'popcorn'] },
+            { id: 'files', name: 'Arquivos & Documentos', nameEn: 'Files & Folders', icon: 'bx-folder', keywords: ['file', 'folder', 'document', 'page', 'clipboard', 'archive', 'paperclip', 'attachment', 'note', 'draft', 'certificate', 'pdf', 'doc', 'txt', 'csv', 'zip', 'copy', 'paste', 'cut', 'save', 'shredder', 'scan', 'book', 'bookmark', 'newspaper', 'journal', 'ledger', 'catalog'] },
+            { id: 'food', name: 'Alimentos & Bebidas', nameEn: 'Food & Drinks', icon: 'bx-coffee', keywords: ['food', 'drink', 'coffee', 'tea', 'cup', 'mug', 'glass', 'bottle', 'beer', 'wine', 'cocktail', 'restaurant', 'dinner', 'lunch', 'breakfast', 'pizza', 'burger', 'sandwich', 'bread', 'cake', 'cookie', 'ice-cream', 'fruit', 'apple', 'banana', 'lemon', 'orange', 'meat', 'fish', 'egg', 'cheese', 'utensils', 'fork', 'knife', 'spoon', 'chef', 'kitchen', 'cooking', 'soup', 'bowl', 'dish', 'candy'] },
+            { id: 'health', name: 'Saúde & Medicina', nameEn: 'Health & Medical', icon: 'bx-plus-medical', keywords: ['health', 'medical', 'medicine', 'hospital', 'doctor', 'nurse', 'pill', 'tablet', 'capsule', 'drug', 'syringe', 'injection', 'stethoscope', 'heartbeat', 'pulse', 'first-aid', 'cross', 'bandage', 'thermometer', 'virus', 'bacteria', 'covid', 'dental', 'tooth', 'dna', 'clinic', 'ambulance', 'lungs', 'brain', 'aid'] },
+            { id: 'home', name: 'Casa & Mobília', nameEn: 'Home & Living', icon: 'bx-home', keywords: ['room', 'door', 'window', 'bed', 'couch', 'sofa', 'chair', 'table', 'furniture', 'lamp', 'light', 'bulb', 'bath', 'shower', 'toilet', 'clean', 'trash', 'bin', 'broom', 'mop', 'iron', 'washing-machine', 'refrigerator', 'fridge', 'oven', 'stove', 'fence'] },
+            { id: 'maps', name: 'Mapas & Localização', nameEn: 'Maps & Location', icon: 'bx-map', keywords: ['map', 'pin', 'location', 'gps', 'marker', 'compass', 'globe', 'planet', 'world', 'navigation', 'direction', 'street', 'road', 'hotel', 'luggage', 'suitcase', 'passport', 'car', 'bus', 'train', 'plane', 'airplane', 'ship', 'boat', 'bicycle', 'bike', 'motorcycle', 'scooter', 'taxi'] },
+            { id: 'math', name: 'Matemática & Símbolos', nameEn: 'Math & Symbols', icon: 'bx-math', keywords: ['math', 'calculator', 'plus', 'minus', 'divide', 'multiply', 'percent', 'percentage', 'equal', 'not-equal', 'infinity', 'pi', 'delta', 'sigma', 'sum', 'omega', 'radix', 'square-root', 'abacus', 'function', 'cube', 'cylinder', 'circle', 'square', 'triangle', 'diamond', 'star', 'asterisk', 'hash', 'number'] },
+            { id: 'security', name: 'Segurança & Proteção', nameEn: 'Security & Protection', icon: 'bx-shield', keywords: ['lock', 'unlock', 'key', 'password', 'passcode', 'security', 'shield', 'protect', 'firewall', 'safe', 'vault', 'fingerprint', 'face-id', 'biometric', 'guard', 'spy', 'incognito', 'police', 'badge', 'privacy', 'cctv', 'surveillance', 'eye-slash'] },
+            { id: 'users', name: 'Usuários & Pessoas', nameEn: 'Users & People', icon: 'bx-user', keywords: ['user', 'users', 'group', 'people', 'team', 'person', 'account', 'profile', 'avatar', 'member', 'contact', 'male', 'female', 'child', 'baby', 'crowd', 'friend', 'follower', 'leader', 'admin', 'supervisor', 'id-card', 'badge-check', 'family'] },
+            { id: 'weather', name: 'Clima & Ciência', nameEn: 'Weather & Science', icon: 'bx-cloud', keywords: ['weather', 'sun', 'sunny', 'moon', 'star', 'cloud', 'rain', 'snow', 'wind', 'storm', 'thunder', 'lightning', 'fog', 'tornado', 'temp', 'temperature', 'thermometer', 'celsius', 'fahrenheit', 'rainbow', 'water', 'drop', 'fire', 'flame', 'ice', 'wave', 'sea', 'ocean', 'sunrise', 'sunset', 'microscope', 'telescope', 'atom', 'flask', 'beaker', 'laboratory', 'test-tube', 'science', 'chemistry', 'physics', 'magnet'] },
+            { id: 'system', name: 'Interface & Sistema', nameEn: 'UI & System Controls', icon: 'bx-slider', keywords: ['settings', 'cog', 'gear', 'wrench', 'tool', 'slider', 'filter', 'check', 'x', 'toggle', 'switch', 'menu', 'list', 'grid', 'more', 'dots', 'handle', 'zoom', 'maximize', 'minimize', 'fullscreen', 'power', 'shutdown', 'logout', 'login', 'download', 'upload', 'export', 'import', 'link', 'unlink', 'external', 'share', 'bookmark', 'trash', 'delete', 'remove', 'align', 'dock', 'table', 'columns', 'row', 'view', 'hide', 'show', 'search', 'adjust', 'control', 'lines'] }
+        ];
+
+        const keys = IconsList || [];
+        const iconCategoryMap = {};
+        const catIconCounts = {};
+
+        categories.forEach(c => catIconCounts[c.id] = 0);
+        catIconCounts['all'] = keys.length;
+
+        // Classificador de ícones por palavras-chave com fallback
+        function classifyIcon(iconName) {
+            const cleanName = iconName.replace(/^(bx-|fa-)/, '').toLowerCase();
+
+            for (const cat of categories) {
+                if (cat.id === 'all' || !cat.keywords) continue;
+                if (cat.keywords.some(k => cleanName === k || cleanName.startsWith(k + '-') || cleanName.endsWith('-' + k) || cleanName.includes('-' + k + '-'))) {
+                    return cat.id;
+                }
+            }
+
+            for (const cat of categories) {
+                if (cat.id === 'all' || !cat.keywords) continue;
+                if (cat.keywords.some(k => cleanName.includes(k))) {
+                    return cat.id;
+                }
+            }
+
+            return 'system';
+        }
+
+        // Mapeia e conta todos os ícones
+        keys.forEach(iconName => {
+            const catId = classifyIcon(iconName);
+            iconCategoryMap[iconName] = catId;
+            catIconCounts[catId] = (catIconCounts[catId] || 0) + 1;
+        });
+
+        // Estado da Biblioteca e Paginação
+        let selectedCategory = 'all';
+        let currentSearchQuery = '';
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 72;
+
+        const categoryTotalBadge = document.getElementById('categoryTotalBadge');
+        if (categoryTotalBadge) categoryTotalBadge.innerText = categories.length - 1;
+
+        // Renderiza a lista de categorias na barra lateral
+        function renderCategorySidebar() {
+            const listEl = document.getElementById('categoryList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            const fragment = document.createDocumentFragment();
+
+            categories.forEach(cat => {
+                const count = catIconCounts[cat.id] || 0;
+                const isSelected = cat.id === selectedCategory;
+
+                const btn = document.createElement('button');
+                btn.className = isSelected
+                    ? 'w-full flex items-center justify-between px-3 py-2 rounded-xl bg-blue-600 text-white font-semibold shadow-sm transition-all text-left'
+                    : 'w-full flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium transition-all text-left group';
+
+                btn.onclick = () => selectCategory(cat.id);
+
+                const leftWrap = document.createElement('div');
+                leftWrap.className = 'flex items-center gap-2.5 min-w-0 pr-2';
+
+                const iconPlaceholder = document.createElement('span');
+                iconPlaceholder.className = isSelected ? 'text-white text-base leading-none' : 'text-slate-400 group-hover:text-blue-600 text-base leading-none transition-colors';
+                iconPlaceholder.innerText = '•';
+
+                const nameLabel = document.createElement('span');
+                nameLabel.className = 'truncate';
+                nameLabel.innerText = cat.nameEn || cat.name;
+
+                leftWrap.appendChild(iconPlaceholder);
+                leftWrap.appendChild(nameLabel);
+
+                const countBadge = document.createElement('span');
+                countBadge.className = isSelected
+                    ? 'text-[10px] font-bold bg-white/20 text-white px-2 py-0.5 rounded-full shrink-0'
+                    : 'text-[10px] font-bold bg-slate-100 text-slate-500 group-hover:bg-slate-200 px-2 py-0.5 rounded-full shrink-0 transition-colors';
+                countBadge.innerText = count;
+
+                btn.appendChild(leftWrap);
+                btn.appendChild(countBadge);
+                fragment.appendChild(btn);
+            });
+
+            listEl.appendChild(fragment);
+        }
+
+        function selectCategory(catId) {
+            selectedCategory = catId;
+            currentPage = 1;
+            renderCategorySidebar();
+            renderCatalog();
+        }
+
+        // Renderiza o grid de ícones no catálogo com paginação e filtro
+        function renderCatalog() {
             const grid = document.getElementById('iconGrid');
+            const counter = document.getElementById('iconCounter');
+            const titleEl = document.getElementById('currentCategoryTitle');
+            const paginationContainer = document.getElementById('paginationContainer');
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationButtons = document.getElementById('paginationButtons');
+
             if (!grid) return;
             grid.innerHTML = '';
 
-            const normalizedFilter = filter.trim().toLowerCase();
-            const filteredKeys = normalizedFilter.length >= 3
-                ? keys.filter(nome => nome.toLowerCase().includes(normalizedFilter))
-                : keys;
+            // 1. Filtro por Categoria
+            let matchedKeys = selectedCategory === 'all'
+                ? keys
+                : keys.filter(nome => iconCategoryMap[nome] === selectedCategory);
 
-            const iconCounter = document.getElementById('iconCounter');
-            if (iconCounter) {
-                iconCounter.innerText = `${filteredKeys.length} ícone${filteredKeys.length === 1 ? '' : 's'}`;
+            // 2. Filtro por Busca
+            const normalizedQuery = currentSearchQuery.trim().toLowerCase();
+            if (normalizedQuery.length >= 3) {
+                matchedKeys = matchedKeys.filter(nome => nome.toLowerCase().includes(normalizedQuery));
             }
 
-            if (filteredKeys.length === 0) {
+            // Atualiza contadores e títulos
+            const currentCatObj = categories.find(c => c.id === selectedCategory) || categories[0];
+            if (titleEl) {
+                titleEl.innerHTML = `<span>${currentCatObj.nameEn || currentCatObj.name}</span>`;
+            }
+
+            if (counter) {
+                counter.innerText = `${matchedKeys.length} ícone${matchedKeys.length === 1 ? '' : 's'}`;
+            }
+
+            if (matchedKeys.length === 0) {
                 grid.innerHTML = `
-                    <div class="col-span-full py-16 text-center text-slate-500">
+                    <div class="col-span-full py-16 text-center text-slate-500 bg-white border border-slate-200 rounded-2xl">
                         <svg class="mx-auto h-12 w-12 text-slate-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
-                        <p class="text-sm font-semibold">Nenhum ícone encontrado para "${filter}"</p>
-                        <p class="text-xs text-slate-400 mt-1">Tente buscar por termos em inglês como "user", "car", "cart", "chevron", "heart"...</p>
+                        <p class="text-sm font-semibold text-slate-800">Nenhum ícone encontrado</p>
+                        <p class="text-xs text-slate-400 mt-1">Tente selecionar outra categoria ou buscar por outro termo.</p>
                     </div>
                 `;
+                if (paginationContainer) paginationContainer.classList.add('hidden');
                 return;
             }
 
+            if (paginationContainer) paginationContainer.classList.remove('hidden');
+
+            // Paginação
+            const totalItems = matchedKeys.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+            const pageItems = matchedKeys.slice(startIndex, endIndex);
+
+            if (paginationInfo) {
+                paginationInfo.innerText = `Mostrando ${startIndex + 1} - ${endIndex} de ${totalItems} ícones`;
+            }
+
+            // Renderiza os Cards da Página Atual
             const fragment = document.createDocumentFragment();
 
-            filteredKeys.forEach(nome => {
+            pageItems.forEach(nome => {
                 const card = document.createElement('div');
-                card.className = "bg-white border border-slate-200 hover:border-blue-500/50 rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50/50 transition-all group shadow-sm hover:shadow-md";
+                card.className = "bg-white border border-slate-200 hover:border-blue-500/50 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50/50 transition-all group shadow-sm hover:shadow-md";
                 card.onclick = () => openModal(nome);
 
                 const iconElement = document.createElement(currentConfig.tagName);
                 iconElement.setAttribute('nome', nome);
-                iconElement.setAttribute('tamanho', '36');
+                iconElement.setAttribute('tamanho', '32');
                 iconElement.className = 'text-slate-700 group-hover:text-blue-600 transition-colors';
 
                 const iconWrapper = document.createElement('div');
@@ -581,7 +785,7 @@ configureIcons({
                 iconWrapper.appendChild(iconElement);
 
                 const label = document.createElement('span');
-                label.className = 'text-xs text-slate-600 font-medium group-hover:text-slate-900 transition-colors capitalize text-center truncate w-full';
+                label.className = 'text-[11px] text-slate-600 font-medium group-hover:text-slate-900 transition-colors capitalize text-center truncate w-full';
                 label.innerText = nome.replace(/-/g, ' ');
 
                 card.appendChild(iconWrapper);
@@ -590,6 +794,79 @@ configureIcons({
             });
 
             grid.appendChild(fragment);
+
+            // Renderiza Botões de Paginação
+            if (paginationButtons) {
+                paginationButtons.innerHTML = '';
+                if (totalPages <= 1) {
+                    paginationContainer.classList.add('hidden');
+                    return;
+                }
+
+                // Botão Anterior
+                const prevBtn = document.createElement('button');
+                prevBtn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${currentPage === 1 ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200 text-slate-400' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'}`;
+                prevBtn.innerText = '‹ Anterior';
+                prevBtn.disabled = currentPage === 1;
+                prevBtn.onclick = () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderCatalog();
+                        scrollToTopGrid();
+                    }
+                };
+                paginationButtons.appendChild(prevBtn);
+
+                // Páginas Numéricas
+                const pageNumbers = getPaginationPages(currentPage, totalPages);
+                pageNumbers.forEach(p => {
+                    if (p === '...') {
+                        const dots = document.createElement('span');
+                        dots.className = 'px-2 py-1 text-xs text-slate-400 font-bold';
+                        dots.innerText = '...';
+                        paginationButtons.appendChild(dots);
+                    } else {
+                        const numBtn = document.createElement('button');
+                        const isCur = p === currentPage;
+                        numBtn.className = `w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center ${isCur ? 'bg-blue-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}`;
+                        numBtn.innerText = p;
+                        numBtn.onclick = () => {
+                            if (currentPage !== p) {
+                                currentPage = p;
+                                renderCatalog();
+                                scrollToTopGrid();
+                            }
+                        };
+                        paginationButtons.appendChild(numBtn);
+                    }
+                });
+
+                // Botão Próximo
+                const nextBtn = document.createElement('button');
+                nextBtn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${currentPage === totalPages ? 'opacity-40 cursor-not-allowed bg-slate-50 border-slate-200 text-slate-400' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'}`;
+                nextBtn.innerText = 'Próximo ›';
+                nextBtn.disabled = currentPage === totalPages;
+                nextBtn.onclick = () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderCatalog();
+                        scrollToTopGrid();
+                    }
+                };
+                paginationButtons.appendChild(nextBtn);
+            }
+        }
+
+        function scrollToTopGrid() {
+            const el = document.getElementById('currentCategoryTitle');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function getPaginationPages(cur, total) {
+            if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+            if (cur <= 3) return [1, 2, 3, 4, '...', total];
+            if (cur >= total - 2) return [1, '...', total - 3, total - 2, total - 1, total];
+            return [1, '...', cur - 1, cur, cur + 1, '...', total];
         }
 
         // Aplicação do prefixo sob demanda (com Loading)
@@ -633,7 +910,9 @@ configureIcons({
 
                 // Re-renderiza o catálogo com o termo de busca atual e o playground
                 const searchTerm = document.getElementById('searchInput').value.trim();
-                renderGrid(searchTerm.length >= 3 ? searchTerm : '');
+                currentSearchQuery = searchTerm.length >= 3 ? searchTerm : '';
+                renderCategorySidebar();
+                renderCatalog();
                 renderSandbox();
 
                 // Restaura o estado normal do botão
@@ -687,12 +966,16 @@ configureIcons({
             searchDebounceTimer = setTimeout(() => {
                 if (trimmed.length === 0) {
                     searchHint.classList.add('hidden');
-                    renderGrid('');
+                    currentSearchQuery = '';
+                    currentPage = 1;
+                    renderCatalog();
                 } else if (trimmed.length < 3) {
                     searchHint.classList.remove('hidden');
                 } else {
                     searchHint.classList.add('hidden');
-                    renderGrid(trimmed);
+                    currentSearchQuery = trimmed;
+                    currentPage = 1;
+                    renderCatalog();
                 }
             }, 250);
         });
@@ -701,7 +984,9 @@ configureIcons({
             searchInput.value = '';
             clearSearchBtn.classList.add('hidden');
             searchHint.classList.add('hidden');
-            renderGrid('');
+            currentSearchQuery = '';
+            currentPage = 1;
+            renderCatalog();
             searchInput.focus();
         });
 
@@ -1051,8 +1336,9 @@ configureIcons({
             }
         });
 
-        // Inicialização do grid inicial e sandbox
-        renderGrid();
+        // Inicialização do grid inicial com categorias e sandbox
+        renderCategorySidebar();
+        renderCatalog();
         renderSandbox();
     </script>
 </body>
