@@ -429,6 +429,7 @@ export const IconsList = [
   'bx-autodesk',
   'bx-avocado-filled',
   'bx-avocado',
+  'bx-award',
   'bx-aws',
   'bx-axe-filled',
   'bx-axe',
